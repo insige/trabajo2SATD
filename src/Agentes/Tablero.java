@@ -33,8 +33,8 @@ public class Tablero implements java.io.Serializable {
                 if (this.tablero[coorF][coorC] == -0.5){
                     ocupada = false;
                     System.out.println("Pongo bloque en: ");
-                    System.out.println("Coordenada Fila: " + coorF + "Coordenada Columna: " + coorC);
-                    this.tablero[coorF][coorC] = -2;
+                    System.out.println("Coordenada Fila: " + coorF + " Coordenada Columna: " + coorC);
+                    this.tablero[coorF][coorC] = -10;
                 }
             }
         }
@@ -49,8 +49,8 @@ public class Tablero implements java.io.Serializable {
                 if (this.tablero[coorF][coorC] == -0.5){
                     ocupada = false;
                     System.out.println("Pongo persona en: ");
-                    System.out.println("Coordenada Fila: " + coorF + "Coordenada Columna: " + coorC);
-                    this.tablero[coorF][coorC] = 2;
+                    System.out.println("Coordenada Fila: " + coorF + " Coordenada Columna: " + coorC);
+                    this.tablero[coorF][coorC] = 10;
                 }
             }
         }

@@ -10,9 +10,9 @@ import java.util.ArrayList;
 public class creacionAgentes {
     
     public static void main (String [ ] args) throws StaleProxyException{
-        int n_personas = 3;
-        int n_bloques = 2;
-        int n_taxis = 3;
+        int n_personas = 10;
+        int n_bloques = 10;
+        int n_taxis = 5;
         Runtime rt;
         rt = Runtime.instance();
         ContainerController cc;
@@ -23,7 +23,7 @@ public class creacionAgentes {
         arg = new Object[3];
         arg[0] = n_personas;
         arg[1] = n_bloques;
-        arg[2] = n_taxis; 
+        arg[2] = n_taxis;
         list.add(cc.createNewAgent("central","Agentes.Central",arg));
         
         for(int i = 1;i<=n_taxis;i++){

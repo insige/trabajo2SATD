@@ -5,12 +5,14 @@
  */
 package Agentes;
 
+import java.io.Serializable;
 
-public class CoorValor {
+
+public class CoorValor implements Serializable{
     int coorF;
     int coorC;
     double valor;
-    CoorValor(int F, int C, int valor){
+    CoorValor(int F, int C, double valor){
         this.coorF = F;
         this.coorC = C;
         this.valor = valor;

@@ -5,7 +5,6 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,8 +24,9 @@ public class Central extends Agent {
             this.n_bloques = n_bloques;
             this.n_taxis = n_taxis;
             tab_inicial = new Tablero(n_personas,n_bloques);
+            tab_inicial.mostrarTablero();
             tab_taxis = tab_inicial.copy();
-            this.correctos = new ACLMessage(ACLMessage.CONFIRM);
+            this.correctos = new ACLMessage(ACLMessage.INFORM);
         }
         @Override
         public void action() {
@@ -48,6 +48,8 @@ public class Central extends Agent {
                     tab_taxis.setValor(filaCol[0], filaCol[1], 100);
                     this.cont++;
                     if(this.cont == this.n_taxis){
+                        System.out.println("Ya he recibido todos los taxis");
+                        this.tab_taxis.mostrarTablero();
                         send(this.correctos);
                         ComportamientoCentral cc = new ComportamientoCentral(this.tab_inicial, this.tab_taxis,this.n_taxis);
                         this.myAgent.addBehaviour(cc);
@@ -88,40 +90,77 @@ public class Central extends Agent {
                     Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 
-            }else if(msg.getPerformative() == ACLMessage.REQUEST_WHEN){ //Se reciben coordenadas y el valor que el taxi tiene
-                
+            }else if(msg.getPerformative() == ACLMessage.REQUEST_WHEN){ 
+                try {
+                    //Se reciben coordenadas y el valor que el taxi tiene
+                    CoorValor cv = (CoorValor) msg.getContentObject();
+                    msg = msg.createReply();
+                    if (cv.getValor() == this.tablero.getValorTablero(cv.getCoorF(), cv.getCoorC())){
+                        msg.setPerformative(ACLMessage.CONFIRM);
+                        this.tablero.setValor(cv.getCoorF(), cv.getCoorC(), 1.5*cv.getValor());
+                    }else{
+                        msg.setPerformative(ACLMessage.REFUSE);
+                    }
+                    send(msg);
+                } catch (UnreadableException ex) {
+                    Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
+                }
             } else if(msg.getPerformative() == ACLMessage.CONFIRM){
-                confirmados.addReceiver(msg.getSender());
-                conf++;
-                if(conf == this.numTaxis){
-                    ComportamientoFinal cf = new ComportamientoFinal(this.tablero_taxis,this.confirmados);
-                    this.myAgent.addBehaviour(cf);
-                    this.myAgent.removeBehaviour(this);
+                try {
+                    confirmados.addReceiver(msg.getSender());
+                    int [] coor =  (int []) msg.getContentObject();
+                    this.tablero.setValor(coor[0], coor[1], -1000);
+                    conf++;
+                    if(conf == this.numTaxis){
+                        send(this.confirmados);
+                        ComportamientoFinal cf = new ComportamientoFinal(this.tablero_taxis);
+                        this.myAgent.addBehaviour(cf);
+                        this.myAgent.removeBehaviour(this);
+                    }
+                } catch (UnreadableException ex) {
+                    Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             
-            /*
-            Cuando vaya recibiendo los mensajes de confirmación de que han ido acabando meter al que ha 
-            enviado el mensaje en el mensaje confirmados 
-            confirmados va a enviarse con al comportamiento final. 
-            */
         }
     }
 
     //Comportamiento final, asociado a el tiempo de validación de las pruebas realizadas por parte de los taxis. 
     public class ComportamientoFinal extends CyclicBehaviour {
         Tablero tablero;
-        ComportamientoFinal(Tablero tab, ACLMessage confirmados){
-            System.out.println("Creo en ComportamientoFinal");
+        Tablero tablero_inicial;
+        ComportamientoFinal(Tablero tab){
             this.tablero = tab;
-            send(confirmados);
-            /*
-            Envía el mensaje de que pueden empezar a probar sus caminos.
-            */
+            this.tablero_inicial = tablero.copy();
         }
         @Override
         public void action() {
-            System.out.println("Entro en ComportamientoFinal");
+            try {
+                System.out.println("Entro en ComportamientoFinal");
+                ACLMessage msg = this.myAgent.blockingReceive();
+                CoorCoor cc = (CoorCoor) msg.getContentObject();
+                msg = msg.createReply();
+                System.out.println("Se ha movido " + msg.getSender() + "de: " + cc.getFila_ini() + " " + cc.getCol_ini() + " a " + cc.getFila_fin() + " " + cc.getCol_fin() );
+                this.tablero.mostrarTablero();
+                if(this.tablero.getValorTablero(cc.getFila_fin(), cc.getCol_fin()) == 100){
+                    msg.setPerformative(ACLMessage.REFUSE);
+                }else{
+                    if(this.tablero_inicial.getValorTablero(cc.getFila_ini(), cc.getCol_ini()) == 100){
+                        this.tablero.setValor(cc.getFila_ini(), cc.getCol_ini(), -0.5);
+                    }else{
+                        this.tablero.setValor(cc.getFila_ini(), cc.getCol_ini(), this.tablero_inicial.getValorTablero(cc.getFila_ini(), cc.getCol_ini()));
+                    }
+                    
+                    this.tablero.setValor(cc.getFila_fin(), cc.getCol_fin(), 100);
+                    msg.setPerformative(ACLMessage.CONFIRM);
+                }
+                send(msg);
+                this.tablero.mostrarTablero();
+                
+            } catch (UnreadableException ex) {
+                Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
         }
     }
     
@@ -129,9 +168,9 @@ public class Central extends Agent {
     @Override
     protected void setup() {
         System.out.println("Inicio del central con nombre: " + this.getLocalName());
-        int n_taxis = Integer.parseInt(this.getArguments()[0].toString());
+        int n_personas = Integer.parseInt(this.getArguments()[0].toString());
         int n_bloques = Integer.parseInt(this.getArguments()[1].toString());
-        int n_personas = Integer.parseInt(this.getArguments()[2].toString());
+        int n_taxis = Integer.parseInt(this.getArguments()[2].toString());
         
         ComportamientoInicial ci = new ComportamientoInicial(n_personas,n_bloques,n_taxis);
         this.addBehaviour(ci);
