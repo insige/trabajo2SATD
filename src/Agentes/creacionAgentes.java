@@ -1,5 +1,6 @@
 package Agentes;
 
+import jade.core.AID;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.AgentController;
@@ -19,15 +20,17 @@ public class creacionAgentes {
         cc = rt.createMainContainer(new ProfileImpl());
         
         ArrayList<AgentController> list = new ArrayList<AgentController>();
-        Object arg[];
-        arg = new Object[3];
-        arg[0] = n_personas;
-        arg[1] = n_bloques;
-        arg[2] = n_taxis;
-        list.add(cc.createNewAgent("central","Agentes.Central",arg));
+        Object arg_central[];
+        arg_central = new Object[3];
+        arg_central[0] = n_personas;
+        arg_central[1] = n_bloques;
+        arg_central[2] = n_taxis;
+        list.add(cc.createNewAgent("central","Agentes.Central",arg_central));
         
+        Object arg_taxi[] = new Object[1];
+        arg_taxi[0] = new AID("central",AID.ISLOCALNAME);
         for(int i = 1;i<=n_taxis;i++){
-            list.add(cc.createNewAgent("taxi"+i,"Agentes.Taxi",null));
+            list.add(cc.createNewAgent("taxi"+i,"Agentes.Taxi",arg_taxi));
         }
         
         for(AgentController a:list){

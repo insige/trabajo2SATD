@@ -139,8 +139,8 @@ public class Central extends Agent {
                 System.out.println("Entro en ComportamientoFinal");
                 ACLMessage msg = this.myAgent.blockingReceive();
                 CoorCoor cc = (CoorCoor) msg.getContentObject();
+                System.out.println("Se ha movido " + msg.getSender().getName() + "de: " + cc.getFila_ini() + " " + cc.getCol_ini() + " a " + cc.getFila_fin() + " " + cc.getCol_fin() );
                 msg = msg.createReply();
-                System.out.println("Se ha movido " + msg.getSender() + "de: " + cc.getFila_ini() + " " + cc.getCol_ini() + " a " + cc.getFila_fin() + " " + cc.getCol_fin() );
                 this.tablero.mostrarTablero();
                 if(this.tablero.getValorTablero(cc.getFila_fin(), cc.getCol_fin()) == 100){
                     msg.setPerformative(ACLMessage.REFUSE);

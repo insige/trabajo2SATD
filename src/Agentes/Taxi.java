@@ -29,7 +29,7 @@ public class Taxi extends Agent {
                     coor[0] = this.fila_inicial;
                     coor[1] = this.columna_inicial;
                     ACLMessage msg_inicial = new ACLMessage(ACLMessage.INFORM);
-                    msg_inicial.addReceiver(new AID("central",AID.ISLOCALNAME));
+                    msg_inicial.addReceiver((AID)this.myAgent.getArguments()[0]);
                     msg_inicial.setContentObject(coor);
                     send(msg_inicial);
                     msg_inicial = this.myAgent.blockingReceive();
@@ -73,7 +73,7 @@ public class Taxi extends Agent {
             }else{
                 try {
                     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-                    msg.addReceiver(new AID("central",AID.ISLOCALNAME));
+                    msg.addReceiver((AID)this.myAgent.getArguments()[0]);
                     send(msg);
                     
                     msg = this.myAgent.blockingReceive();
@@ -131,22 +131,25 @@ public class Taxi extends Agent {
         int coor_act[];
         boolean parar;
         int num,cont;
-        //EN ESTA CREACIÓN DE COMPORTAMIENTO QUEDA METER EL CAMINO.
+        /*
+        EN ESTA CREACIÓN DE COMPORTAMIENTO QUEDA METER EL CAMINO.
+        */
         ComportamientoValidacionTaxi(int [] coor){
             this.coor_ini = coor;
             this.coor_act = coor;
             this.parar = false;
             this.num = (int) (Math.random() * 7);
-            System.out.println(this.num);
             this.cont = 0;
         }
         @Override
         public void action() {
             if(!parar){
-                System.out.println(this.myAgent.getName() + "Ejecuta ComportamientoValidacionTaxi");
+                /*
+                TRATAMIENTO DEL CAMINO
+                */
                 try {
                     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-                    msg.addReceiver(new AID("central",AID.ISLOCALNAME));
+                    msg.addReceiver((AID)this.myAgent.getArguments()[0]);
                     /*
                     EDITAR, ESTO ES PARA PROBAR
                     */
@@ -163,13 +166,13 @@ public class Taxi extends Agent {
                         TRATAMIENTO MOVIMIENTO NO REALIZADO
                         */
                     }else if(msg.getPerformative() == ACLMessage.CONFIRM){
+                        this.coor_act = coor;
                         /*
                         TRATAMIENTO MOVIMIENTO REALIZADO
                         */
                     }
                     this.cont++;
                     if ( this.cont >= this.num){
-                        System.out.println(this.myAgent.getName() + "ha acabado con " + this.num + " veces");
                         parar = true;
                     }
                 } catch (IOException ex) {
