@@ -6,6 +6,7 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +57,7 @@ public class Taxi extends Agent {
     public class ComportamientoPruebasTaxi extends CyclicBehaviour {
         int coor_ini[];
         boolean encontrado;
+        ArrayList<CoorCoor> camino = null;
         ComportamientoPruebasTaxi(int fila,int columna){
             this.coor_ini = new int[2];
             this.coor_ini[0] = fila;
@@ -67,7 +69,7 @@ public class Taxi extends Agent {
             System.out.println("Se ejecuta ComportamientoPruebas de " + this.myAgent.getLocalName());
             if (encontrado){
                 this.myAgent.blockingReceive();
-                ComportamientoValidacionTaxi cvt = new ComportamientoValidacionTaxi(this.coor_ini);
+                ComportamientoValidacionTaxi cvt = new ComportamientoValidacionTaxi(this.coor_ini, this.camino);
                 this.myAgent.addBehaviour(cvt);
                 this.myAgent.removeBehaviour(this);
             }else{
@@ -127,51 +129,31 @@ public class Taxi extends Agent {
     
     //Creación del comportamiento asociado a la fase de validación de las pruebas realizadas
     public class ComportamientoValidacionTaxi extends CyclicBehaviour {
-        int coor_ini[];
-        int coor_act[];
         boolean parar;
         int num,cont;
-        /*
-        EN ESTA CREACIÓN DE COMPORTAMIENTO QUEDA METER EL CAMINO.
-        */
-        ComportamientoValidacionTaxi(int [] coor){
-            this.coor_ini = coor;
-            this.coor_act = coor;
+        ArrayList<CoorCoor> list;
+        ComportamientoValidacionTaxi(int [] coor,ArrayList<CoorCoor> camino){
             this.parar = false;
-            this.num = (int) (Math.random() * 7);
+            this.num = camino.size();
             this.cont = 0;
+            this.list = camino;
         }
         @Override
         public void action() {
             if(!parar){
-                /*
-                TRATAMIENTO DEL CAMINO
-                */
                 try {
                     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
                     msg.addReceiver((AID)this.myAgent.getArguments()[0]);
-                    /*
-                    EDITAR, ESTO ES PARA PROBAR
-                    */
-                    int [] coor= new int[2];
-                    coor[0] = (int) (Math.random() * 7);
-                    coor[1] = (int) (Math.random() * 7);
-                    CoorCoor cc = new CoorCoor(this.coor_act[0],this.coor_act[1],coor[0],coor[1]);
+                    CoorCoor cc = list.get(cont);
                     msg.setContentObject(cc);
                     send(msg);
                     
                     msg = this.myAgent.blockingReceive();
                     if(msg.getPerformative() == ACLMessage.REFUSE){
-                        /*
-                        TRATAMIENTO MOVIMIENTO NO REALIZADO
-                        */
+
                     }else if(msg.getPerformative() == ACLMessage.CONFIRM){
-                        this.coor_act = coor;
-                        /*
-                        TRATAMIENTO MOVIMIENTO REALIZADO
-                        */
+                        this.cont++;
                     }
-                    this.cont++;
                     if ( this.cont >= this.num){
                         parar = true;
                     }
