@@ -111,4 +111,108 @@ public class Tablero implements java.io.Serializable {
         }
         return(t);
     }
+    
+    public ArrayList<CoorValor> obtenerPosiblesMovimientos(ArrayList<CoorValor> movs) {
+        ArrayList<CoorValor> posiblesMovimientos = new ArrayList<CoorValor>();
+        //Se recorre el array pasado como parametro
+        for (int i=0; i<movs.size(); i++) {
+            CoorValor cv = movs.get(i);
+            int fila_cv = cv.getCoorF();
+            int columna_cv = cv.getCoorC();
+            if (fila_cv == 0 || columna_cv == 0 || fila_cv == 6 || columna_cv == 6) {
+                if (fila_cv == 0) {
+                    if (columna_cv == 0) {
+                        CoorValor cv1 = new CoorValor(0, 1, this.tablero[0][1]);
+                        CoorValor cv2 = new CoorValor(1, 0, this.tablero[1][0]);
+                        posiblesMovimientos.add(cv1);
+                        posiblesMovimientos.add(cv2);
+                    }
+                    else if (columna_cv == 6) {
+                        CoorValor cv1 = new CoorValor(0, 5, this.tablero[0][5]);
+                        CoorValor cv2 = new CoorValor(1, 6, this.tablero[1][6]);
+                        posiblesMovimientos.add(cv1);
+                        posiblesMovimientos.add(cv2);
+                    }
+                    else {
+                        CoorValor cv1 = new CoorValor(fila_cv, columna_cv + 1, this.tablero[fila_cv][columna_cv + 1]);
+                        CoorValor cv2 = new CoorValor(fila_cv + 1, columna_cv, this.tablero[fila_cv + 1][columna_cv]);
+                        CoorValor cv3 = new CoorValor(fila_cv, columna_cv - 1, this.tablero[fila_cv][columna_cv - 1]);
+                        posiblesMovimientos.add(cv1);
+                        posiblesMovimientos.add(cv2);
+                        posiblesMovimientos.add(cv3);
+                    }
+                }
+                else if (columna_cv == 0) {
+                    if (fila_cv == 6) {
+                        CoorValor cv1 = new CoorValor(5, 0, this.tablero[5][0]);
+                        CoorValor cv2 = new CoorValor(6, 1, this.tablero[6][1]);
+                        posiblesMovimientos.add(cv1);
+                        posiblesMovimientos.add(cv2);  
+                    }
+                    else {
+                        CoorValor cv1 = new CoorValor(fila_cv, columna_cv + 1, this.tablero[fila_cv][columna_cv + 1]);
+                        CoorValor cv2 = new CoorValor(fila_cv + 1, columna_cv, this.tablero[fila_cv + 1][columna_cv]);
+                        CoorValor cv3 = new CoorValor(fila_cv - 1, columna_cv, this.tablero[fila_cv - 1][columna_cv]);
+                        posiblesMovimientos.add(cv1);
+                        posiblesMovimientos.add(cv2);
+                        posiblesMovimientos.add(cv3);
+                    }
+                }
+                else if (fila_cv == 6) {
+                    if (columna_cv == 6) {
+                        CoorValor cv1 = new CoorValor(5, 6, this.tablero[5][6]);
+                        CoorValor cv2 = new CoorValor(6, 5, this.tablero[6][5]);
+                        posiblesMovimientos.add(cv1);
+                        posiblesMovimientos.add(cv2);  
+                    }
+                    else {
+                        CoorValor cv1 = new CoorValor(fila_cv, columna_cv + 1, this.tablero[fila_cv][columna_cv + 1]);
+                        CoorValor cv2 = new CoorValor(fila_cv, columna_cv - 1, this.tablero[fila_cv][columna_cv - 1]);
+                        CoorValor cv3 = new CoorValor(fila_cv - 1, columna_cv, this.tablero[fila_cv - 1][columna_cv]);
+                        posiblesMovimientos.add(cv1);
+                        posiblesMovimientos.add(cv2);
+                        posiblesMovimientos.add(cv3); 
+                    }
+                }
+                else if (columna_cv == 6) {
+                        CoorValor cv1 = new CoorValor(fila_cv + 1, columna_cv, this.tablero[fila_cv + 1][columna_cv]);
+                        CoorValor cv2 = new CoorValor(fila_cv, columna_cv - 1, this.tablero[fila_cv][columna_cv - 1]);
+                        CoorValor cv3 = new CoorValor(fila_cv - 1, columna_cv, this.tablero[fila_cv - 1][columna_cv]);
+                        posiblesMovimientos.add(cv1);
+                        posiblesMovimientos.add(cv2);
+                        posiblesMovimientos.add(cv3); 
+                }
+            }
+            else {
+                CoorValor cv1 = new CoorValor(fila_cv, columna_cv + 1, this.tablero[fila_cv][columna_cv + 1]);
+                CoorValor cv2 = new CoorValor(fila_cv + 1, columna_cv, this.tablero[fila_cv + 1][columna_cv]);
+                CoorValor cv3 = new CoorValor(fila_cv, columna_cv - 1, this.tablero[fila_cv][columna_cv - 1]);
+                CoorValor cv4 = new CoorValor(fila_cv - 1, columna_cv, this.tablero[fila_cv - 1][columna_cv]);
+                posiblesMovimientos.add(cv1);
+                posiblesMovimientos.add(cv2);
+                posiblesMovimientos.add(cv3);
+                posiblesMovimientos.add(cv4);
+            }
+        } //bucle for
+        //Hay que eliminar de la lista posiblesMovimientos las CoorValor que estaban en la lista movs
+        ArrayList<CoorValor> listaMovimientosFinal = new ArrayList<CoorValor>();
+        for (int i=0; i<posiblesMovimientos.size(); i++) {
+            CoorValor pm = posiblesMovimientos.get(i);
+            int fila_pm = pm.getCoorF();
+            int columna_pm = pm.getCoorC();
+            boolean encontrado = false;
+            for (int j=0; j<movs.size(); j++) {
+                CoorValor cv = movs.get(j);
+                int fila_cv = cv.getCoorF();
+                int columna_cv = cv.getCoorC();
+                if (fila_cv==fila_pm && columna_cv==columna_pm) {
+                   encontrado = true; 
+                }
+            }
+            if (!encontrado) {
+                listaMovimientosFinal.add(pm);
+            }
+        }
+        return listaMovimientosFinal;
+    }
 }
