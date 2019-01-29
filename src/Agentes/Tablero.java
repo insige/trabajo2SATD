@@ -5,6 +5,8 @@
  */
 package Agentes;
 
+import java.util.ArrayList;
+
 
 public class Tablero implements java.io.Serializable {
     double [][] tablero;
@@ -89,11 +91,11 @@ public class Tablero implements java.io.Serializable {
     }
     
     public void mostrarTablero(){
-        System.out.println("      0       1       2       3       4       5       6       ");
+        System.out.println("\t\t0\t\t1\t\t2\t\t3\t\t4\t\t5\t\t6       ");
         for (int i=0;i<7;i++){
-            System.out.print(i + "   ");
+            System.out.print(i + "\t");
             for (int j=0;j<7;j++){
-                System.out.print(this.tablero[i][j] + "    ");
+                System.out.printf(this.tablero[i][j] + "\t\t");
             }
             System.out.print("\n");
         }

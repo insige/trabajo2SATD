@@ -7,6 +7,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,7 +40,7 @@ public class Taxi extends Agent {
                         this.columna_inicial = (int) (Math.random() * 7);
                     }else{
                         correcto = true;
-                    }   
+                    }
                 } catch (IOException ex) {
                     Logger.getLogger(Taxi.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -60,7 +61,8 @@ public class Taxi extends Agent {
         Camino camino = null;
         int coor_fin[];
         int coor_actual[];
-        
+        int visualizacion;
+        ArrayList<CoorValor> explorados = new ArrayList<CoorValor>();
         ComportamientoPruebasTaxi(int fila,int columna){
             this.coor_ini = new int[2];
             this.coor_ini[0] = fila;
@@ -70,6 +72,7 @@ public class Taxi extends Agent {
             this.coor_fin[1] = columna;
             this.encontrado = false;
             this.camino = new Camino(fila,columna);
+            explorados.add(new CoorValor(fila, columna, 100.0));
         }
         @Override
         public void action() {
@@ -84,18 +87,34 @@ public class Taxi extends Agent {
                     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
                     msg.addReceiver((AID)this.myAgent.getArguments()[0]);
                     send(msg);
-                    
                     msg = this.myAgent.blockingReceive();
                     Tablero tab = (Tablero)msg.getContentObject();
+                    ArrayList<CoorValor> movimientos = tab.obtenerPosiblesMovimientos(explorados);
+                    double max = movimientos.get(0).getValor();
+                    ArrayList<CoorValor> mejores = new ArrayList<CoorValor>();
                     
+                    for(int i=0; i < movimientos.size();i++){
+                        if(movimientos.get(i).getValor() > max){
+                            max = movimientos.get(i).getValor();
+                            mejores.clear();
+                            mejores.add(movimientos.get(i));
+                        }
+                        else if (movimientos.get(i).getValor() == max){
+                                mejores.add(movimientos.get(i));
+                        }
+                    }
+                    
+                    Random eleccion = new Random();
+                    CoorValor mov = mejores.get(eleccion.nextInt(mejores.size()));
+
                     /*
                     CREAR OPERACIONES CON EL TABLERO Y LA DECISIÓN DE MOVIMIENTO
                     */
                     //TODO:  Necesara la operación de obtención de frontera para poder probar bien todo
                     // sin tener que generar avances aleatorios.
-                    
-                    int fila = (int) (Math.random() * 7);
-                    int columna = (int) (Math.random() * 7);
+                    explorados.add(mov);
+                    int fila = mov.getCoorF();
+                    int columna = mov.getCoorC();
                     System.out.println(this.myAgent.getName() + " Fila y columna " + fila + " " +columna);
                     CoorValor cv = new CoorValor(fila,columna,tab.getValorTablero(fila, columna));
                     
