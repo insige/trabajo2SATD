@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class creacionAgentes {
     
     public static void main (String [ ] args) throws StaleProxyException{
-        int n_personas = 10;
+        int n_personas = 5;
         int n_bloques = 10;
         int n_taxis = 5;
         Runtime rt;

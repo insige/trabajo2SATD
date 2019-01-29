@@ -112,7 +112,7 @@ public class Taxi extends Agent {
                     */
                     //TODO:  Necesara la operación de obtención de frontera para poder probar bien todo
                     // sin tener que generar avances aleatorios.
-                    explorados.add(mov);
+                    
                     int fila = mov.getCoorF();
                     int columna = mov.getCoorC();
                     System.out.println(this.myAgent.getName() + " Fila y columna " + fila + " " +columna);
@@ -125,7 +125,7 @@ public class Taxi extends Agent {
                     
                     msg = this.myAgent.blockingReceive();
                     if (msg.getPerformative() == ACLMessage.CONFIRM){
-                     
+                        explorados.add(mov);
                         camino.add(fila, columna, coor_fin[0], coor_fin[1]);
                            System.out.println(this.myAgent.getName() + " Movimiento realizado a " + fila + " " +columna+ " desde "+ coor_fin[0] + " " +coor_fin[1]);
 

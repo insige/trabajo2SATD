@@ -93,7 +93,8 @@ public class Camino implements Serializable{
     private boolean adyacentes(int fila_dest,int col_dest, int fila_ini, int col_ini) {
         //Obtiene si las coordenadas son adyacentes
         if (fila_ini!=init.coorF || col_ini!=init.coorC){
-            return(abs(fila_dest-fila_ini)==1 && abs(col_dest-col_ini)==1);
+            // return(abs(fila_dest-fila_ini)==1 && abs(col_dest-col_ini)==1);
+            return (abs(fila_dest-fila_ini)+abs(col_dest-col_ini)==1);
         }
         else return true;  //Por aquí no debería pasar de todas formas ni al inicializar.
     }
