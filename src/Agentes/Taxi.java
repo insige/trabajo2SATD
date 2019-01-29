@@ -57,19 +57,26 @@ public class Taxi extends Agent {
     public class ComportamientoPruebasTaxi extends CyclicBehaviour {
         int coor_ini[];
         boolean encontrado;
-        ArrayList<CoorCoor> camino = null;
+        Camino camino = null;
+        int coor_fin[];
+        int coor_actual[];
+        
         ComportamientoPruebasTaxi(int fila,int columna){
             this.coor_ini = new int[2];
             this.coor_ini[0] = fila;
             this.coor_ini[1] = columna;
+            this.coor_fin = new int[2];
+            this.coor_fin[0] = fila;
+            this.coor_fin[1] = columna;
             this.encontrado = false;
+            this.camino = new Camino(fila,columna);
         }
         @Override
         public void action() {
             System.out.println("Se ejecuta ComportamientoPruebas de " + this.myAgent.getLocalName());
             if (encontrado){
                 this.myAgent.blockingReceive();
-                ComportamientoValidacionTaxi cvt = new ComportamientoValidacionTaxi(this.coor_ini, this.camino);
+                ComportamientoValidacionTaxi cvt = new ComportamientoValidacionTaxi(this.coor_ini, this.camino.Get_camino(coor_fin[0], coor_fin[1]));
                 this.myAgent.addBehaviour(cvt);
                 this.myAgent.removeBehaviour(this);
             }else{
@@ -84,6 +91,8 @@ public class Taxi extends Agent {
                     /*
                     CREAR OPERACIONES CON EL TABLERO Y LA DECISIÓN DE MOVIMIENTO
                     */
+                    //TODO:  Necesara la operación de obtención de frontera para poder probar bien todo
+                    // sin tener que generar avances aleatorios.
                     
                     int fila = (int) (Math.random() * 7);
                     int columna = (int) (Math.random() * 7);
@@ -97,12 +106,16 @@ public class Taxi extends Agent {
                     
                     msg = this.myAgent.blockingReceive();
                     if (msg.getPerformative() == ACLMessage.CONFIRM){
-                        /*
-                        AÑADIR MOVIMIENTO REALIZADO
-                        */
-                        System.out.println(this.myAgent.getName() + " Movimiento realizado " + fila + " " +columna);
+                     
+                        camino.add(fila, columna, coor_fin[0], coor_fin[1]);
+                           System.out.println(this.myAgent.getName() + " Movimiento realizado a " + fila + " " +columna+ " desde "+ coor_fin[0] + " " +coor_fin[1]);
+
+                        coor_fin[0]=fila;
+                        coor_fin[1]=columna;
+                        
                         if(tab.getValorTablero(fila,columna) == 10){
                             encontrado = true;
+                            System.out.println(this.myAgent.getName() + "Pasajero encontrado");
                             msg = msg.createReply();
                             int [] coor = new int[2];
                             coor[0]=fila;
@@ -112,9 +125,9 @@ public class Taxi extends Agent {
                             send(msg);
                         }
                     }else if (msg.getPerformative() == ACLMessage.REFUSE){
-                        /*
-                        TRATAMIENTO AL MOVIMIENTO NO REALIZADO
-                        */
+                        
+                      System.out.println(this.myAgent.getName() + " " + fila + " " +columna + " ocupada, se vuelve a pedir el tablero ");
+                      //Do nothing  y volver al loop 
                     }
                 } catch (UnreadableException ex) {
                     Logger.getLogger(Taxi.class.getName()).log(Level.SEVERE, null, ex);
@@ -145,6 +158,7 @@ public class Taxi extends Agent {
                     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
                     msg.addReceiver((AID)this.myAgent.getArguments()[0]);
                     CoorCoor cc = list.get(cont);
+                    //System.out.println("num =  "+num+"cont = "+cont);
                     msg.setContentObject(cc);
                     send(msg);
                     

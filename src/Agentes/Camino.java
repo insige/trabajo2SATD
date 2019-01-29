@@ -25,6 +25,7 @@ public class Camino implements Serializable{
         caminos = new HashMap<String,CoorCoor>();
         ordenExploracion = new HashMap<String,Integer>();
         this.ordenContador = 0;
+        this.init = new CoorValor(fila_ini,col_ini,-1);
         this.init.coorF = fila_ini;
         this.init.coorC = col_ini;
         //La primera casilla explorada es la casilla de salida.
@@ -69,13 +70,18 @@ public class Camino implements Serializable{
         int yvar = -1;
         CoorCoor paso;
         
-        while(xvar!=init.coorF && yvar!=init.coorC){
+        while(xvar!=init.coorF || yvar!=init.coorC){
            paso = caminos.get(clave);
+           //System.out.println(clave);
            //Se añade a la cabeza, por lo que listaresultado es una cola FILO
-           listaresultado.add(0, paso);
-           xvar = paso.fila_ini;
-           yvar = paso.col_ini;
+           //listaresultado.add(0, paso);
+           listaresultado.add(0, new CoorCoor(paso.getFila_fin(),paso.getCol_fin(),paso.getFila_ini(),paso.getCol_ini()));
+           //System.out.println(init.coorF+""+init.coorC+"");
+          // System.out.println(paso.getFila_fin()+""+paso.getCol_fin()+""+paso.getFila_ini()+""+paso.getCol_ini());
+           xvar = paso.fila_fin;
+           yvar = paso.col_fin;
            clave = "Casilla_"+xvar+"_"+yvar;
+           //System.out.println(clave);
         }
         
         
@@ -86,10 +92,12 @@ public class Camino implements Serializable{
 
     private boolean adyacentes(int fila_dest,int col_dest, int fila_ini, int col_ini) {
         //Obtiene si las coordenadas son adyacentes
-        if (fila_ini!=init.coorF || col_ini!=init.coorC){
-            return(abs(fila_dest-fila_ini)==1 && abs(col_dest-col_ini)==1);
-        }
-        else return true;  //Por aquí no debería pasar de todas formas ni al inicializar.
+        //if (fila_ini!=init.coorF || col_ini!=init.coorC
+        //TODO: DESCOMENTAR MÉTODO CUANDO LA FRONTERA EXISTA Y LA EXPLORACIÖN NO SEA ALEATORIA.
+        return true;
+            //return(abs(fila_dest-fila_ini)==1 && abs(col_dest-col_ini)==1);
+       //}
+        //else return true;  //Por aquí no debería pasar de todas formas ni al inicializar.
         
     }
 
