@@ -51,7 +51,7 @@ public class Central extends Agent {
                         System.out.println("Ya he recibido todos los taxis");
                         this.tab_taxis.mostrarTablero();
                         send(this.correctos);
-                        ComportamientoCentral cc = new ComportamientoCentral(this.tab_inicial, this.tab_taxis,this.n_taxis);
+                        ComportamientoCentral cc = new ComportamientoCentral(this.tab_inicial, this.tab_taxis,this.n_taxis,this.n_personas);
                         this.myAgent.addBehaviour(cc);
                         this.myAgent.removeBehaviour(this);
                     }
@@ -67,12 +67,16 @@ public class Central extends Agent {
         Tablero tablero;
         Tablero tablero_taxis;
         int numTaxis;
+        int numPersonas;
         ACLMessage confirmados;
         int conf;
-        ComportamientoCentral(Tablero tab,Tablero tab_taxis, int n_taxis){
+        boolean ending;
+        ComportamientoCentral(Tablero tab,Tablero tab_taxis, int n_taxis, int n_personas){
             this.tablero = tab;
             this.tablero_taxis = tab_taxis;
             this.numTaxis = n_taxis;
+            this.numPersonas = n_personas;
+            ending = false;
             confirmados = new ACLMessage(ACLMessage.INFORM);
         }
         @Override
@@ -90,7 +94,7 @@ public class Central extends Agent {
                     Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 
-            }else if(msg.getPerformative() == ACLMessage.REQUEST_WHEN){ 
+            }else if(msg.getPerformative() == ACLMessage.REQUEST_WHEN && !ending){ 
                 try {
                     //Se reciben coordenadas y el valor que el taxi tiene
                     CoorValor cv = (CoorValor) msg.getContentObject();
@@ -105,7 +109,7 @@ public class Central extends Agent {
                 } catch (UnreadableException ex) {
                     Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } else if(msg.getPerformative() == ACLMessage.CONFIRM){
+            } else if(msg.getPerformative() == ACLMessage.CONFIRM && !ending){
                 try {
                     confirmados.addReceiver(msg.getSender());
                     int [] coor =  (int []) msg.getContentObject();
@@ -117,8 +121,23 @@ public class Central extends Agent {
                         this.myAgent.addBehaviour(cf);
                         this.myAgent.removeBehaviour(this);
                     }
+                    else if(conf == this.numPersonas){
+                        ending = true;
+                    }
                 } catch (UnreadableException ex) {
                     Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else if(ending){
+                confirmados.addReceiver(msg.getSender());
+                if(conf == this.numTaxis){
+                        send(this.confirmados);
+                        ComportamientoFinal cf = new ComportamientoFinal(this.tablero_taxis);
+                        this.myAgent.addBehaviour(cf);
+                        this.myAgent.removeBehaviour(this);
+                }else{
+                    msg.setPerformative(ACLMessage.INFORM);
+                    send(msg);
+                    conf++;
                 }
             }
             

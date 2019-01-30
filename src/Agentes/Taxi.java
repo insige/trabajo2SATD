@@ -70,6 +70,9 @@ public class Taxi extends Agent {
             this.coor_fin = new int[2];
             this.coor_fin[0] = fila;
             this.coor_fin[1] = columna;
+            this.coor_actual = new int[2];
+            this.coor_actual[0] = fila;
+            this.coor_actual[1] = columna;
             this.encontrado = false;
             this.camino = new Camino(fila,columna);
             explorados.add(new CoorValor(fila, columna, 100.0));
@@ -80,6 +83,7 @@ public class Taxi extends Agent {
             if (encontrado){
                 this.myAgent.blockingReceive();
                 ComportamientoValidacionTaxi cvt = new ComportamientoValidacionTaxi(this.coor_ini, this.camino.Get_camino(coor_fin[0], coor_fin[1]));
+                System.out.println("Salgo de comportamiento de pruebas de" + this.myAgent.getLocalName());
                 this.myAgent.addBehaviour(cvt);
                 this.myAgent.removeBehaviour(this);
             }else{
@@ -110,8 +114,6 @@ public class Taxi extends Agent {
                     /*
                     CREAR OPERACIONES CON EL TABLERO Y LA DECISIÓN DE MOVIMIENTO
                     */
-                    //TODO:  Necesara la operación de obtención de frontera para poder probar bien todo
-                    // sin tener que generar avances aleatorios.
                     
                     int fila = mov.getCoorF();
                     int columna = mov.getCoorC();
@@ -147,6 +149,13 @@ public class Taxi extends Agent {
                         
                       System.out.println(this.myAgent.getName() + " " + fila + " " +columna + " ocupada, se vuelve a pedir el tablero ");
                       //Do nothing  y volver al loop 
+                    }else if (msg.getPerformative() == ACLMessage.INFORM){    
+                      encontrado = true;
+                      /*ArrayList<CoorCoor> camin = this.camino.Get_camino(coor_fin[0], coor_fin[1]);
+                      for(int i=0; i<camin.size();i++){
+                        System.out.printf("De [%d,%d] a [%d,%d]%n",camin.get(i).getFila_ini()
+                        ,camin.get(i).getCol_ini(),camin.get(i).getFila_fin(),camin.get(i).getCol_fin());
+                        }*/
                     }
                 } catch (UnreadableException ex) {
                     Logger.getLogger(Taxi.class.getName()).log(Level.SEVERE, null, ex);
