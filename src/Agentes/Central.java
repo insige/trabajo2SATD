@@ -69,76 +69,90 @@ public class Central extends Agent {
         int numTaxis;
         int numPersonas;
         ACLMessage confirmados;
+        ACLMessage msg;
         int conf;
-        boolean ending;
+        boolean ending, finaliza;
         ComportamientoCentral(Tablero tab,Tablero tab_taxis, int n_taxis, int n_personas){
             this.tablero = tab;
             this.tablero_taxis = tab_taxis;
             this.numTaxis = n_taxis;
             this.numPersonas = n_personas;
             ending = false;
+            finaliza = false;
+            conf = 0;
             confirmados = new ACLMessage(ACLMessage.INFORM);
         }
         @Override
         public void action() {
             //Espera a recibir mensaje
-            ACLMessage msg = this.myAgent.blockingReceive(); 
-            if (msg.getPerformative() == ACLMessage.REQUEST){ 
-                try {
-                    //Se ha pedido el tablero
-                    ACLMessage reply = msg.createReply();
-                    reply.setPerformative(ACLMessage.INFORM);
-                    reply.setContentObject(this.tablero);
-                    send(reply);
-                } catch (IOException ex) {
-                    Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                
-            }else if(msg.getPerformative() == ACLMessage.REQUEST_WHEN && !ending){ 
-                try {
-                    //Se reciben coordenadas y el valor que el taxi tiene
-                    CoorValor cv = (CoorValor) msg.getContentObject();
-                    msg = msg.createReply();
-                    if (cv.getValor() == this.tablero.getValorTablero(cv.getCoorF(), cv.getCoorC())){
-                        msg.setPerformative(ACLMessage.CONFIRM);
-                        this.tablero.setValor(cv.getCoorF(), cv.getCoorC(), 1.5*cv.getValor());
-                    }else{
-                        msg.setPerformative(ACLMessage.REFUSE);
+            if(!finaliza){
+                msg = this.myAgent.blockingReceive();
+                if (msg.getPerformative() == ACLMessage.REQUEST){ 
+                    try {
+                        //Se ha pedido el tablero
+                        ACLMessage reply = msg.createReply();
+                        reply.setPerformative(ACLMessage.INFORM);
+                        reply.setContentObject(this.tablero);
+                        send(reply);
+                    } catch (IOException ex) {
+                        Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    send(msg);
-                } catch (UnreadableException ex) {
-                    Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else if(msg.getPerformative() == ACLMessage.CONFIRM && !ending){
-                try {
+
+                }else if(msg.getPerformative() == ACLMessage.REQUEST_WHEN && !ending){ 
+                    try {
+                        //Se reciben coordenadas y el valor que el taxi tiene
+                        CoorValor cv = (CoorValor) msg.getContentObject();
+                        msg = msg.createReply();
+                        if (cv.getValor() == this.tablero.getValorTablero(cv.getCoorF(), cv.getCoorC())){
+                            msg.setPerformative(ACLMessage.CONFIRM);
+                            this.tablero.setValor(cv.getCoorF(), cv.getCoorC(), 1.5*cv.getValor());
+                        }else{
+                            msg.setPerformative(ACLMessage.REFUSE);
+                        }
+                        send(msg);
+                    } catch (UnreadableException ex) {
+                        Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else if(msg.getPerformative() == ACLMessage.CONFIRM && !ending){
+                    try {
+                        confirmados.addReceiver(msg.getSender());
+                        int [] coor =  (int []) msg.getContentObject();
+                        this.tablero.setValor(coor[0], coor[1], -1000);
+                        conf++;
+                        if(conf == numTaxis){
+                            send(this.confirmados);
+                            ComportamientoFinal cf = new ComportamientoFinal(this.tablero_taxis);
+                            this.myAgent.addBehaviour(cf);
+                            this.myAgent.removeBehaviour(this);
+                        }
+                        else if(conf == numPersonas){
+                            ending = true;
+                        }
+                    } catch (UnreadableException ex) {
+                        Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else if(ending && msg.getPerformative() == ACLMessage.REQUEST_WHEN){
                     confirmados.addReceiver(msg.getSender());
-                    int [] coor =  (int []) msg.getContentObject();
-                    this.tablero.setValor(coor[0], coor[1], -1000);
-                    conf++;
-                    if(conf == this.numTaxis){
-                        send(this.confirmados);
-                        ComportamientoFinal cf = new ComportamientoFinal(this.tablero_taxis);
-                        this.myAgent.addBehaviour(cf);
-                        this.myAgent.removeBehaviour(this);
+                    try {
+                        msg.getContentObject();
+                    } catch (UnreadableException ex) {
+                        Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    else if(conf == this.numPersonas){
-                        ending = true;
-                    }
-                } catch (UnreadableException ex) {
-                    Logger.getLogger(Central.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else if(ending){
-                confirmados.addReceiver(msg.getSender());
-                if(conf == this.numTaxis){
-                        send(this.confirmados);
-                        ComportamientoFinal cf = new ComportamientoFinal(this.tablero_taxis);
-                        this.myAgent.addBehaviour(cf);
-                        this.myAgent.removeBehaviour(this);
-                }else{
-                    msg.setPerformative(ACLMessage.INFORM);
-                    send(msg);
+                    System.out.printf("%s\n",msg.getSender());
                     conf++;
+                    System.out.printf("Aumento conf %d\n",conf);
+                    if(conf == numTaxis){
+                            finaliza = true;
+                            System.out.printf("Finaliza\n");
+                    }
                 }
+            }
+            else if (finaliza){
+                System.out.printf("Acabo de entrar\n %s",this.confirmados.toString());
+                send(this.confirmados);
+                ComportamientoFinal cf = new ComportamientoFinal(this.tablero_taxis);
+                this.myAgent.addBehaviour(cf);
+                this.myAgent.removeBehaviour(this);
             }
             
         }
@@ -157,6 +171,7 @@ public class Central extends Agent {
             try {
                 System.out.println("Entro en ComportamientoFinal");
                 ACLMessage msg = this.myAgent.blockingReceive();
+                System.out.println(msg.getSender().getName()+ "esta en central?");
                 CoorCoor cc = (CoorCoor) msg.getContentObject();
                 System.out.println("Se ha movido " + msg.getSender().getName() + "de: " + cc.getFila_ini() + " " + cc.getCol_ini() + " a " + cc.getFila_fin() + " " + cc.getCol_fin() );
                 msg = msg.createReply();

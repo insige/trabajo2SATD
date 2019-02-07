@@ -79,7 +79,7 @@ public class Taxi extends Agent {
         }
         @Override
         public void action() {
-            System.out.println("Se ejecuta ComportamientoPruebas de " + this.myAgent.getLocalName());
+            
             if (encontrado){
                 this.myAgent.blockingReceive();
                 ComportamientoValidacionTaxi cvt = new ComportamientoValidacionTaxi(this.coor_ini, this.camino.Get_camino(coor_fin[0], coor_fin[1]));
@@ -88,6 +88,7 @@ public class Taxi extends Agent {
                 this.myAgent.removeBehaviour(this);
             }else{
                 try {
+                    System.out.println("Se ejecuta ComportamientoPruebas de " + this.myAgent.getLocalName()+ encontrado);
                     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
                     msg.addReceiver((AID)this.myAgent.getArguments()[0]);
                     send(msg);
@@ -149,8 +150,11 @@ public class Taxi extends Agent {
                         
                       System.out.println(this.myAgent.getName() + " " + fila + " " +columna + " ocupada, se vuelve a pedir el tablero ");
                       //Do nothing  y volver al loop 
-                    }else if (msg.getPerformative() == ACLMessage.INFORM){    
-                      encontrado = true;
+                    }else if (msg.getPerformative() == ACLMessage.INFORM){
+                        ComportamientoValidacionTaxi cvt = new ComportamientoValidacionTaxi(this.coor_ini, this.camino.Get_camino(coor_fin[0], coor_fin[1]));
+                        System.out.println("Salgo de comportamiento de pruebas de" + this.myAgent.getLocalName());
+                        this.myAgent.addBehaviour(cvt);
+                        this.myAgent.removeBehaviour(this);
                       /*ArrayList<CoorCoor> camin = this.camino.Get_camino(coor_fin[0], coor_fin[1]);
                       for(int i=0; i<camin.size();i++){
                         System.out.printf("De [%d,%d] a [%d,%d]%n",camin.get(i).getFila_ini()
@@ -171,12 +175,13 @@ public class Taxi extends Agent {
     //Creación del comportamiento asociado a la fase de validación de las pruebas realizadas
     public class ComportamientoValidacionTaxi extends CyclicBehaviour {
         boolean parar;
-        int num,cont;
+        int num,cont, fail;
         ArrayList<CoorCoor> list;
         ComportamientoValidacionTaxi(int [] coor,ArrayList<CoorCoor> camino){
             this.parar = false;
             this.num = camino.size();
             this.cont = 0;
+            this.fail = 0;
             this.list = camino;
         }
         @Override
@@ -192,11 +197,12 @@ public class Taxi extends Agent {
                     
                     msg = this.myAgent.blockingReceive();
                     if(msg.getPerformative() == ACLMessage.REFUSE){
-
+                        fail++;
                     }else if(msg.getPerformative() == ACLMessage.CONFIRM){
                         this.cont++;
+                        fail = 0;
                     }
-                    if ( this.cont >= this.num){
+                    if ( this.cont >= this.num || fail == 20){
                         parar = true;
                     }
                 } catch (IOException ex) {
